@@ -10,6 +10,7 @@ from mysql.connector import Error
 import cryptographer as cr
 import os
 import json
+import ctypes
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -17,16 +18,20 @@ class ChatApp(QWidget):
         self.current_user = None
         self.db_conn = self.create_db_connection()
         self.init_db_tables()
-        self.setWindowIcon(QIcon("Textit.png"))
+        self.setWindowIcon(QIcon("Textit.ico"))
         self.initUI()
 
     def create_db_connection(self):
         try:
             conn = mysql.connector.connect(
-                host='localhost',
-                user='root',        # Change to your MySQL username
-                password='admin',
-                database="textit" # Change to your MySQL password
+                host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+                port = 4000,
+                user = "7ZE685VgAZgW9i3.root",
+                password = "oI3e2HEgT3phCGSI",
+                database = "test",
+                ssl_ca = "isrgrootx1.pem",
+                ssl_verify_cert = True,
+                ssl_verify_identity = True
             )
             return conn
         except Error as e:
@@ -408,7 +413,7 @@ class ChatApp(QWidget):
             cursor = self.db_conn.cursor()
             enc_password = cr.encrypter(password, cipher)
             
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", 
                          (username, enc_password))
             self.db_conn.commit()
@@ -432,7 +437,7 @@ class ChatApp(QWidget):
         try:
             cursor = self.db_conn.cursor(dictionary=True)
             enc_password = cr.encrypter(password,cipher)
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute("SELECT id, username FROM users WHERE username = %s AND password = %s", 
                          (username, enc_password))
             user = cursor.fetchone()
@@ -454,7 +459,7 @@ class ChatApp(QWidget):
         self.contactsList.clear()
         try:
             cursor = self.db_conn.cursor(dictionary=True)
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute("SELECT id, username FROM users WHERE id != %s", (self.current_user['id'],))
             contacts = cursor.fetchall()
             
@@ -472,7 +477,7 @@ class ChatApp(QWidget):
         
         try:
             cursor = self.db_conn.cursor(dictionary=True)
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute("SELECT username FROM users WHERE id = %s", (contact_id,))
             contact = cursor.fetchone()
             
@@ -498,7 +503,7 @@ class ChatApp(QWidget):
         self.chatHistory.clear()
         try:
             cursor = self.db_conn.cursor(dictionary=True)
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute('''
             SELECT 
                 u.username as sender, 
@@ -546,7 +551,7 @@ class ChatApp(QWidget):
         try:
             cursor = self.db_conn.cursor()
             enc_message = cr.encrypter(message,cipher)
-            cursor.execute("USE textit")
+            cursor.execute("USE test")
             cursor.execute('''
             INSERT INTO messages (sender_id, receiver_id, message)
             VALUES (%s, %s, %s)
@@ -563,6 +568,9 @@ class ChatApp(QWidget):
         self.stackedLayout.setCurrentIndex(0)
 
 if __name__ == '__main__':
+    # This ID can be any unique string (e.g., 'mycompany.myproduct.version')
+    my_app_id = 'my_unique_app_identifier_v2' 
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(my_app_id)
     app = QApplication(sys.argv)
     window = ChatApp()
     window.show()
