@@ -572,6 +572,7 @@ class ChatApp(QWidget):
         cursor = self.db_conn.cursor()
         self.username = k.get_password("ChatApp", "username")
         cursor.execute("update users set is_signed_in = false where username = %s",(self.username,))
+        conn.commit()
         self.current_user = None
         self.stackedLayout.setCurrentIndex(0)
 
