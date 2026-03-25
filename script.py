@@ -11,6 +11,7 @@ import cryptographer as cr
 import os
 import json
 import ctypes
+import keyring as k
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -48,7 +49,8 @@ class ChatApp(QWidget):
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                is_signed_in BOOLEAN           
             )
             ''')
             
@@ -414,10 +416,11 @@ class ChatApp(QWidget):
             enc_password = cr.encrypter(password, cipher)
             
             cursor.execute("USE test")
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", 
+            cursor.execute("INSERT INTO users (username, password, is_signed_in) VALUES (%s, %s, true)", 
                          (username, enc_password))
             self.db_conn.commit()
-            
+            k.set_password("ChatApp","username",username)
+
             self.stackedLayout.setCurrentIndex(2)
             self.newUsername.clear()
             self.newPassword.clear()
@@ -443,7 +446,9 @@ class ChatApp(QWidget):
             user = cursor.fetchone()
             
             if user:
+                k.set_password("ChatApp","username",username)
                 self.current_user = {'id': user['id'], 'username': user['username']}
+                cursor.execute("update users set is_signed_in = true where username = %s",(username,))
                 self.stackedLayout.setCurrentIndex(2)
                 self.usernameInput.clear()
                 self.passwordInput.clear()
@@ -564,6 +569,9 @@ class ChatApp(QWidget):
             QMessageBox.critical(self, "Database Error", f"Failed to send message: {e}")
 
     def logout(self):
+        cursor = self.db_conn.cursor()
+        self.username = k.get_password("ChatApp", "username")
+        cursor.execute("update users set is_signed_in = false where username = %s",(self.username,))
         self.current_user = None
         self.stackedLayout.setCurrentIndex(0)
 
