@@ -572,13 +572,13 @@ class ChatApp(QWidget):
         cursor = self.db_conn.cursor()
         self.username = k.get_password("ChatApp", "username")
         cursor.execute("update users set is_signed_in = false where username = %s",(self.username,))
-        conn.commit()
+        self.db_conn.commit()
         self.current_user = None
         self.stackedLayout.setCurrentIndex(0)
 
 if __name__ == '__main__':
     # This ID can be any unique string (e.g., 'mycompany.myproduct.version')
-    my_app_id = 'my_unique_app_identifier_v2' 
+    my_app_id = 'textit' 
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(my_app_id)
     app = QApplication(sys.argv)
     window = ChatApp()
