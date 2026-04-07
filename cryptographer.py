@@ -3,7 +3,9 @@ import string
 
 def key_generator():
     l = list(string.ascii_lowercase)
+    num = list("1234567890")
     l1 = l.copy()
+    num1 = num.copy()
     key = []
     cipher = {}
 
@@ -15,9 +17,22 @@ def key_generator():
         n -= 1
     del l
 
+    n1 = 9
+    for i in range(10):
+        rint = r.randint(0,n1)
+        key.append(num[rint])
+        num.pop(rint)
+        n1 -= 1
+    del num
+
     for i in range(26):
         k = l1[i]
         v = key[i]
+        cipher[k] = v
+
+    for i in range(10):
+        k = num1[i]
+        v = key[i+26]
         cipher[k] = v
     
     return cipher
@@ -35,6 +50,10 @@ def encrypter(s,cipher):
                 for k,v in dict(cipher).items():
                     if i == k:
                         encrypted_message += v
+        elif i.isdigit():
+            for k,v in dict(cipher).items():
+                    if i == k:
+                        encrypted_message += str(v)
         else:
             encrypted_message += i
     return encrypted_message
@@ -52,6 +71,10 @@ def decrypter(s,cipher):
                 for k,v in dict(cipher).items():
                     if i == v:
                         decrypted_message += k
+        elif i.isdigit():
+            for k,v in dict(cipher).items():
+                    if i == v:
+                        decrypted_message += str(k)
         else:
             decrypted_message += i
     return decrypted_message

@@ -28,7 +28,7 @@ class ChatApp(QWidget):
                 host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
                 port = 4000,
                 user = "7ZE685VgAZgW9i3.root",
-                password = "oI3e2HEgT3phCGSI",
+                password = "HGvxZCuOakQSQ8cg",
                 database = "test",
                 ssl_ca = "isrgrootx1.pem",
                 ssl_verify_cert = True,
@@ -50,7 +50,7 @@ class ChatApp(QWidget):
                 username VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_signed_in BOOLEAN           
+                is_signed_in BOOLEAN
             )
             ''')
             
@@ -109,7 +109,7 @@ class ChatApp(QWidget):
         
         header = QLabel("Welcome to TextIt")
         header.setStyleSheet("font-size: 20px; font-weight: bold; font-style: italic;")
-        header.setAlignment(Qt.AlignCenter)
+        header.setAlignment(Qt.AlignCenter) # type: ignore
         
         self.usernameInput = QLineEdit(self)
         self.usernameInput.resize(50,400)
@@ -180,7 +180,7 @@ class ChatApp(QWidget):
         layout.addSpacing(10)
         layout.addWidget(self.passwordInput)
         layout.addSpacing(10)
-        layout.addWidget(self.signInButton, alignment=Qt.AlignCenter)
+        layout.addWidget(self.signInButton, alignment=Qt.AlignCenter) # pyright: ignore[reportAttributeAccessIssue]
         layout.addSpacing(10)
         layout.addWidget(self.signUpButton, alignment=Qt.AlignCenter)
         
