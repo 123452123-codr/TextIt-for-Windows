@@ -1,7 +1,8 @@
 import random as r
+import string
 
 def key_generator():
-    l = list("abcdefghijklmnopqrstuvwxyz")
+    l = list(string.ascii_lowercase)
     l1 = l.copy()
     key = []
     cipher = {}

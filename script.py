@@ -389,6 +389,7 @@ class ChatApp(QWidget):
         username = self.newUsername.text()
         password = self.newPassword.text()
         confirm = self.confirmPassword.text()
+        cursor = self.db_conn.cursor()
         
         if not username or not password:
             QMessageBox.warning(self, "Error", "Username and password are required")
@@ -409,10 +410,8 @@ class ChatApp(QWidget):
         else:
             with open("key.json","r") as f:
                 cipher = json.load(f)
-
-                
+        
         try:
-            cursor = self.db_conn.cursor()
             enc_password = cr.encrypter(password, cipher)
             
             cursor.execute("USE test")
@@ -465,7 +464,7 @@ class ChatApp(QWidget):
         try:
             cursor = self.db_conn.cursor(dictionary=True)
             cursor.execute("USE test")
-            cursor.execute("SELECT id, username FROM users WHERE id != %s", (self.current_user['id'],))
+            cursor.execute("SELECT id, username FROM users WHERE id != %s", (self.current_user['id'],)) # type: ignore
             contacts = cursor.fetchall()
             
             for contact in contacts:
@@ -478,7 +477,7 @@ class ChatApp(QWidget):
             return
             
         contact_text = item.text()
-        contact_id = int(contact_text.split("ID: ")[1].strip(")"))
+        contact_id = int(str(contact_text).split("ID: ")[1].strip(")"))
         
         try:
             cursor = self.db_conn.cursor(dictionary=True)
