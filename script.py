@@ -11,6 +11,7 @@ import cryptographer as cr
 import os
 import json
 import ctypes
+from cryptography.fernet import Fernet
 import keyring as k
 
 class ChatApp(QWidget):

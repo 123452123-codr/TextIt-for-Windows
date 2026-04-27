@@ -1,4 +1,4 @@
-import random as r
+'''import random as r
 import string
 
 def key_generator():
@@ -77,4 +77,7 @@ def decrypter(s,cipher):
                         decrypted_message += str(k)
         else:
             decrypted_message += i
-    return decrypted_message
+    return decrypted_message'''
+
+
+
