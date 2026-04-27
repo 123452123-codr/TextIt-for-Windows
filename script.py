@@ -8,11 +8,8 @@ import mysql.connector
 from datetime import datetime
 from mysql.connector import Error
 import cryptographer as cr
-import os
-import json
 import ctypes
-from cryptography.fernet import Fernet
-import keyring as k
+
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -399,7 +396,8 @@ class ChatApp(QWidget):
             QMessageBox.warning(self, "Error", "Passwords do not match")
             return
         
-        flag_file = "flag.txt"
+        
+        '''flag_file = "flag.txt"
         if not os.path.exists(flag_file):
 
             cipher = cr.key_generator()
@@ -410,16 +408,14 @@ class ChatApp(QWidget):
         
         else:
             with open("key.json","r") as f:
-                cipher = json.load(f)
+                cipher = json.load(f)'''
         
         try:
-            enc_password = cr.encrypter(password, cipher)
-            
+            hashed_pw = cr.hash_password(password)          
             cursor.execute("USE test")
             cursor.execute("INSERT INTO users (username, password, is_signed_in) VALUES (%s, %s, true)", 
-                         (username, enc_password))
+                         (username, hashed_pw))
             self.db_conn.commit()
-            k.set_password("ChatApp","username",username)
 
             self.stackedLayout.setCurrentIndex(2)
             self.newUsername.clear()
@@ -435,18 +431,14 @@ class ChatApp(QWidget):
         if not username or not password:
             QMessageBox.warning(self, "Error", "Please enter both username and password")
             return
-        with open("key.json","r") as f:
-            cipher = json.load(f)
         try:
             cursor = self.db_conn.cursor(dictionary=True)
-            enc_password = cr.encrypter(password,cipher)
             cursor.execute("USE test")
-            cursor.execute("SELECT id, username FROM users WHERE username = %s AND password = %s", 
-                         (username, enc_password))
+            cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
+            stored_hash = user[2]
             
-            if user:
-                k.set_password("ChatApp","username",username)
+            if cr.verify_password(password, stored_hash):
                 self.current_user = {'id': user['id'], 'username': user['username']}
                 cursor.execute("update users set is_signed_in = true where username = %s",(username,))
                 self.stackedLayout.setCurrentIndex(2)
@@ -529,12 +521,9 @@ class ChatApp(QWidget):
             
             messages = cursor.fetchall()
 
-            with open("key.json","r") as f:
-                cipher = json.load(f)
-
             for message in messages:
                 timestamp = str(message['sent_at']).split('.')[0]
-                dec_message = cr.decrypter(message['message'],cipher)
+                dec_message = cr.decrypt_data(message['message'])
                 self.chatHistory.append(f"[{timestamp}] <{message['sender']}> {dec_message}")
             
             self.chatHistory.verticalScrollBar().setValue(
@@ -550,12 +539,9 @@ class ChatApp(QWidget):
         if not message:
             return
         
-        with open("key.json","r") as f:
-            cipher = json.load(f)
-
         try:
             cursor = self.db_conn.cursor()
-            enc_message = cr.encrypter(message,cipher)
+            enc_message = cr.encrypt_data(message)
             cursor.execute("USE test")
             cursor.execute('''
             INSERT INTO messages (sender_id, receiver_id, message)
@@ -570,7 +556,6 @@ class ChatApp(QWidget):
 
     def logout(self):
         cursor = self.db_conn.cursor()
-        self.username = k.get_password("ChatApp", "username")
         cursor.execute("update users set is_signed_in = false where username = %s",(self.username,))
         self.db_conn.commit()
         self.current_user = None
