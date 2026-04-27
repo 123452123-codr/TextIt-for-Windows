@@ -9,7 +9,7 @@ from datetime import datetime
 from mysql.connector import Error
 import cryptographer as cr
 import ctypes
-
+import keyring as k
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -416,6 +416,7 @@ class ChatApp(QWidget):
             cursor.execute("INSERT INTO users (username, password, is_signed_in) VALUES (%s, %s, true)", 
                          (username, hashed_pw))
             self.db_conn.commit()
+            k.set_password("ChatApp","username",username)
 
             self.stackedLayout.setCurrentIndex(2)
             self.newUsername.clear()
@@ -436,9 +437,10 @@ class ChatApp(QWidget):
             cursor.execute("USE test")
             cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
-            stored_hash = user[2]
+            stored_hashparam = user['password']
             
-            if cr.verify_password(password, stored_hash):
+            if cr.verify_password(password, stored_hashparam):
+                k.set_password("ChatApp","username",username)
                 self.current_user = {'id': user['id'], 'username': user['username']}
                 cursor.execute("update users set is_signed_in = true where username = %s",(username,))
                 self.stackedLayout.setCurrentIndex(2)
@@ -556,6 +558,7 @@ class ChatApp(QWidget):
 
     def logout(self):
         cursor = self.db_conn.cursor()
+        self.username = k.get_password("ChatApp", "username")
         cursor.execute("update users set is_signed_in = false where username = %s",(self.username,))
         self.db_conn.commit()
         self.current_user = None
