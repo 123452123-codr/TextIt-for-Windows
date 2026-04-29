@@ -3,13 +3,14 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QPushButton, QLabel, QListWidget,
                              QStackedWidget, QMessageBox, QTextEdit)
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QEvent
 import mysql.connector
 from datetime import datetime
 from mysql.connector import Error
 import cryptographer as cr
 import ctypes
 import keyring as k
+
 
 class ChatApp(QWidget):
     def __init__(self):
@@ -313,7 +314,24 @@ class ChatApp(QWidget):
         layout.addWidget(self.logoutButton, alignment=Qt.AlignCenter)
         
         self.contactsPage.setLayout(layout)
+    def eventFilter(self, obj, event):
 
+        if obj == self.messageInput:
+
+            if event.type() == QEvent.KeyPress:
+
+                if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+
+                    if event.modifiers() == Qt.ShiftModifier:
+                        # Shift+Enter → newline
+                        return False
+
+                    else:
+                        # Enter → call your send function
+                        self.sendMessage()   # change this name
+                        return True
+
+        return super().eventFilter(obj, event)
     def setupChat(self):
         layout = QVBoxLayout()
         
@@ -324,7 +342,8 @@ class ChatApp(QWidget):
         self.chatHistory = QTextEdit()
         self.chatHistory.setReadOnly(True)
         
-        self.messageInput = QTextEdit(self)
+        self.messageInput = QTextEdit()
+        self.messageInput.installEventFilter(self)
         self.messageInput.setPlaceholderText("Enter text here")
         self.messageInput.setStyleSheet("""
             QLineEdit {
